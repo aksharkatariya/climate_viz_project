@@ -1,0 +1,90 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Climate Anomalies Visualizations</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .section {
+      display: flex;
+      margin-bottom: 40px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 20px;
+    }
+    .left {
+      width: 60%;
+      padding-right: 20px;
+      border-right: 1px solid #aaa;
+    }
+    .right {
+      width: 40%;
+      padding-left: 20px;
+    }
+    iframe, img, audio {
+      width: 100%;
+      max-width: 100%;
+      display: block;
+    }
+    h1 {
+      margin-bottom: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Climate Anomalies Visualizations</h1>
+
+  <div class="section">
+    <div class="left">
+      <img src="anomalies_by_month_decade.svg" alt="Anomalies by Month and Decade">
+    </div>
+    <div class="right">
+      <p>This plot shows monthly climate anomalies across different decades, highlighting seasonal trends and temperature variability over time.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="left">
+      <iframe src="3d_plot.html" height="400px"></iframe>
+    </div>
+    <div class="right">
+      <p>This 3D surface plot visualizes a complex dataset (e.g., volcano topography or climate variation) to uncover patterns not easily seen in 2D plots.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="left">
+      <audio controls>
+        <source src="anomaly_year_month.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+      </audio>
+    </div>
+    <div class="right">
+      <p>This audio summary provides a verbal walkthrough of key patterns observed in the year-month anomaly dataset.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="left">
+      <img src="anomaly_letters_plot.svg" alt="Anomaly Letters Plot">
+    </div>
+    <div class="right">
+      <p>This chart likely represents climate anomalies through a typographic lens, encoding temperature deviation data using letterforms for a creative visual twist.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="left">
+      <img src="anomaly_thermometer_plot.svg" alt="Anomaly Thermometer Plot">
+    </div>
+    <div class="right">
+      <p>This thermometer-style plot gives an intuitive view of how recorded anomalies align with temperature ranges—like reading a historical climate thermometer.</p>
+    </div>
+  </div>
+
+</body>
+</html>
