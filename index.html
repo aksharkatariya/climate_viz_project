@@ -165,13 +165,17 @@
     Did you like reading this? <br>Please subscribe to receive more such content.
   </p>
 
-  <form name="subscribe" method="POST" data-netlify="true">
-    <input type="email" name="email" placeholder="Enter your email" required
-           style="padding:10px; font-family:'Roboto Mono'; border:1px solid #000; border-radius:5px;">
-    <button type="submit" style="padding:10px 20px; background:#000; color:#f0e2c1; border:none; border-radius:5px; font-family:'Roboto Mono'; cursor:pointer;">
-      Subscribe
-    </button>
-  </form>
+<form name="subscribe" method="POST" data-netlify="true">
+  <!-- Required for Netlify to recognize and route form submissions -->
+  <input type="hidden" name="form-name" value="subscribe">
+  
+  <input type="email" name="email" placeholder="Enter your email" required
+         style="padding:10px; font-family:'Roboto Mono'; border:1px solid #000; border-radius:5px;">
+  <button type="submit" style="padding:10px 20px; background:#000; color:#f0e2c1; border:none; border-radius:5px; font-family:'Roboto Mono'; cursor:pointer;">
+    Subscribe
+  </button>
+</form>
+
 </div>
   <br>
 <hr>
