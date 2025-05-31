@@ -180,8 +180,18 @@
 → <a href="#top" style="color:#000;">Revisit your favorite chart</a> | 
 → <a href="https://aksharkatariya.substack.com" target="_blank" style="color:#000;">Subscribe to my newsletter</a> |
 → <a href="https://x.com/AksharKatariya" target="_blank" style="color:#000;">Share on Twitter</a>
+<button onclick="copyLink()" style="background:#000; color:#f0e2c1; border:none; border-radius:5px; padding:6px 12px; font-family:'Roboto Mono'; cursor:pointer;">
+  📋 Share this page
+</button>
 </p>
 
+<script>
+  function copyLink() {
+    navigator.clipboard.writeText(window.location.href)
+      .then(() => alert("🔗 Link copied to clipboard!"))
+      .catch(() => alert("❌ Failed to copy link."));
+  }
+</script>
   
 </body>
 </html>
