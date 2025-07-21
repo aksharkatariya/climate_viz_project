@@ -1,0 +1,365 @@
+---
+title: "ClimateGraphs"
+author: "Akshar Katariya"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r echo=FALSE, message=FALSE}
+data_q4 <- read.csv('/Users/aksharkatariya/Library/CloudStorage/OneDrive-TheUniversityofChicago/ICP/HW1/indiv1_gmst_monthly.csv', skip = 4, header = T)
+
+```
+
+## Part a
+
+```{r echo=FALSE, message=FALSE}
+data_q4$month <- substr(as.character(data_q4$Year), 5, 6)  # last two digits for month
+data_q4$Year  <- substr(as.character(data_q4$Year), 1, 4)  # first four digits for year
+data_q4$Year <- as.numeric(data_q4$Year)
+
+```
+
+```{r echo=FALSE, message=FALSE}
+
+
+library(ggplot2)
+library(ggridges)
+# Ensure month is ordered correctly
+# df$month <- factor(df$month, levels = 1:12, labels = month.abb)
+
+library(ggplot2)
+library(dplyr)
+
+# Prepare the data
+df <- data_q4 %>%
+  filter(!is.na(Anomaly)) %>%
+  mutate(
+    Decade = paste0(floor(Year / 10) * 10, "s"),              # e.g. 1950s
+    Month = factor(month, levels = 1:12, labels = month.abb), # Ensure month order
+    Decade = factor(Decade, levels = sort(unique(paste0(floor(Year / 10) * 10, "s")))) # sort
+  )
+
+# Plot: GitHub-style heatmap
+ggplot(df, aes(x = Decade, y = month, fill = Anomaly)) +
+  geom_tile(color = "white", size = 0.5) +
+  scale_fill_gradient2(
+    low = "#2166ac", mid = "white", high = "#b2182b",
+    midpoint = 0, name = "Anomaly"
+  ) +
+  labs(
+    title = "Anomalies by Month and Decade",
+    x = "Decade",
+    y = "Month"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    panel.grid = element_blank(),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "bottom"
+  )
+
+```
+
+
+```{r echo=FALSE, message=FALSE}
+library(dplyr)
+library(tidyr)
+library(plotly)
+
+# Convert to month names and decades
+df <- data_q4 %>%
+  filter(!is.na(Anomaly)) %>%
+  mutate(
+    Month = factor(month, levels = 1:12, labels = month.abb),
+    Decade = paste0(floor(Year / 10) * 10, "s")
+  ) %>%
+  group_by(month, Decade) %>%
+  summarize(Anomaly = mean(Anomaly, na.rm = TRUE), .groups = 'drop') %>%
+  pivot_wider(names_from = Decade, values_from = Anomaly)
+
+# Create matrix of anomaly values
+z_matrix <- as.matrix(df[,-1])  # remove Month column
+rownames(z_matrix) <- df$Month
+
+
+plot_ly(
+  x = colnames(z_matrix),       # Decades
+  y = rownames(z_matrix),       # Months
+  z = z_matrix,
+  type = "surface",
+  colorscale = "RdBu",
+  reversescale = FALSE
+) %>%
+  layout(
+    title = "3D Surface of Monthly Anomalies by Decade",
+    scene = list(
+      xaxis = list(title = "Decade"),
+      yaxis = list(title = "Month"),
+      zaxis = list(title = "Anomaly")
+    )
+  )
+
+```
+
+
+```{r echo=FALSE, message=FALSE}
+
+write.csv(data_q4, '/Users/aksharkatariya/Library/CloudStorage/OneDrive-TheUniversityofChicago/ICP/HW1/anomaly_year_month.csv')
+
+library(audio)
+
+# Example: Simulated temperature anomaly data
+anomalies <- data_q4$Anomaly
+
+# Normalize data to a pitch range (say 220Hz to 880Hz)
+min_pitch <- 220
+max_pitch <- 880
+scaled_pitches <- (anomalies - min(anomalies)) / (max(anomalies) - min(anomalies))
+frequencies <- scaled_pitches * (max_pitch - min_pitch) + min_pitch
+
+# Generate a tone for each data point
+note_duration <- 3  # seconds
+sampling_rate <- 22050
+
+for (freq in frequencies) {
+  t <- seq(0, note_duration, by = 1/sampling_rate)
+  wave <- sin(2 * pi * freq * t)
+  audio::play(wave)
+}
+
+
+```
+
+```{r}
+anomalies <- data_q4$Anomaly
+
+# Normalize to pitch range
+min_pitch <- 220
+max_pitch <- 880
+scaled_pitches <- (anomalies - min(anomalies)) / (max(anomalies) - min(anomalies))
+frequencies <- scaled_pitches * (max_pitch - min_pitch) + min_pitch
+
+note_duration <- 1  # seconds
+sampling_rate <- 22050
+waveform_all <- numeric()
+
+# Generate and concatenate all waveforms
+for (freq in frequencies) {
+  t <- seq(0, note_duration, by = 1 / sampling_rate)
+  wave <- sin(2 * pi * freq * t)
+  waveform_all <- c(waveform_all, wave)
+}
+
+# Normalize to avoid clipping
+waveform_all <- waveform_all / max(abs(waveform_all))
+
+# Save as WAV file
+write_wav(waveform_all, "temperature_sonification.wav", sample_rate = sampling_rate)
+
+```
+
+
+```{r}
+
+library(audio)
+
+# Parameters
+note_duration <- 0.05
+sampling_rate <- 22050
+min_pitch <- 220
+max_pitch <- 880
+
+# Sample ~50 anomalies from data_q4
+set.seed(42)
+anomalies <- na.omit(data_q4$Anomaly)
+sampled <- anomalies
+
+# Scale to frequency range
+scaled <- (sampled - min(sampled)) / (max(sampled) - min(sampled))
+frequencies <- scaled * (max_pitch - min_pitch) + min_pitch
+
+# Create full waveform
+full_wave <- numeric(0)
+for (freq in frequencies) {
+  t <- seq(0, note_duration, by = 1 / sampling_rate)
+  wave <- sin(2 * pi * freq * t)
+  full_wave <- c(full_wave, wave)
+}
+
+# Normalize to avoid clipping
+full_wave <- full_wave / max(abs(full_wave))
+
+# Convert to 16-bit PCM format
+int_wave <- as.integer(full_wave * 32767)
+
+# Save as .wav file manually
+wav_header <- function(num_samples, sample_rate = 22050, bits = 16) {
+  num_channels <- 1
+  byte_rate <- sample_rate * num_channels * bits / 8
+  block_align <- num_channels * bits / 8
+  data_len <- num_samples * bits / 8
+
+  # RIFF header
+  header <- c(
+    charToRaw("RIFF"),
+    writeBin(as.integer(36 + data_len), raw(), size = 4, endian = "little"),
+    charToRaw("WAVE"),
+
+    # fmt subchunk
+    charToRaw("fmt "),
+    writeBin(as.integer(16), raw(), size = 4, endian = "little"),  # PCM header length
+    writeBin(as.integer(1), raw(), size = 2, endian = "little"),   # PCM format
+    writeBin(as.integer(num_channels), raw(), size = 2, endian = "little"),
+    writeBin(as.integer(sample_rate), raw(), size = 4, endian = "little"),
+    writeBin(as.integer(byte_rate), raw(), size = 4, endian = "little"),
+    writeBin(as.integer(block_align), raw(), size = 2, endian = "little"),
+    writeBin(as.integer(bits), raw(), size = 2, endian = "little"),
+
+    # data subchunk
+    charToRaw("data"),
+    writeBin(as.integer(data_len), raw(), size = 4, endian = "little")
+  )
+
+  return(header)
+}
+
+# Write final file
+con <- file("anomaly_short.wav", "wb")
+writeBin(wav_header(length(int_wave)), con)
+writeBin(int_wave, con, size = 2, endian = "little")
+close(con)
+
+cat("✅ Saved: anomaly_short.wav (15s sonification, base R only)\n")
+
+```
+
+<audio controls>
+  <source src="anomaly_short.wav" type="audio/wav">
+
+</audio>
+
+```{r echo=FALSE, message=FALSE}
+library(dplyr)
+
+decade_avg <- data_q4 %>%
+  filter(!is.na(Anomaly)) %>%
+  mutate(
+    Decade = paste0(floor(Year / 10) * 10, "s")
+  ) %>%
+  group_by(Decade) %>%
+  summarize(
+    Avg_Anomaly = mean(Anomaly, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(Decade)
+
+```
+
+```{r echo=FALSE, message=FALSE}
+#Average anomaly per decade
+decade_avg <- data_q4 %>%
+  filter(!is.na(Anomaly)) %>%
+  mutate(Decade = paste0(floor(Year / 10) * 10, "s")) %>%
+  group_by(Decade) %>%
+  summarize(Avg_Anomaly = mean(Anomaly, na.rm = TRUE), .groups = "drop") %>%
+  arrange(Decade)
+
+#Attach one letter per decade from the phrase
+letters_vec <- strsplit("AtmosphericWarming", "")[[1]]
+decade_avg$Letter <- letters_vec[1:nrow(decade_avg)]
+
+#Plot with subtle vertical offset
+ggplot(decade_avg, aes(x = Decade, y = 0)) +
+  geom_hline(yintercept = 0, color = "gray40", linewidth = 0.5) +
+  geom_text(
+    aes(label = Letter, size = abs(Avg_Anomaly)*1.5),
+    vjust = ifelse(decade_avg$Avg_Anomaly >= 0, -0.5, 1.2)
+  ) +
+  scale_size_continuous(range = c(2, 27)) +
+  ylim(-2, 2.5) +  # Give space for big letters
+  theme_minimal() +
+  labs(title = "Climate Timeline: 'Environmental Threat' Shaped by Decades of Anomalies") +
+  theme(
+    axis.title = element_blank(),
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(size = 10),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    legend.position = "none"
+  )
+
+```
+
+
+```{r echo=FALSE, message=FALSE}
+library(dplyr)
+library(ggplot2)
+
+# Step 1: Prepare the data with average anomaly per month per decade
+df_line <- data_q4 %>%
+  filter(!is.na(Anomaly)) %>%
+  mutate(
+    Decade = paste0(floor(Year / 10) * 10, "s"),
+    month = factor(month)  # ensure order
+  ) %>%
+  group_by(Decade, month) %>%
+  summarize(Avg_Anomaly = mean(Anomaly, na.rm = TRUE), .groups = "drop")
+
+# Step 2: Plot multi-line chart
+ggplot(df_line, aes(x = month, y = Avg_Anomaly, color = Decade, group = Decade)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 1.5) +
+  labs(
+    title = "monthly Anomaly Trends by Decade",
+    x = "month",
+    y = "Average Anomaly"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.title = element_blank()
+  ) +
+  scale_color_viridis_d(option = "C")
+
+```
+
+
+```{r echo=FALSE, message=FALSE}
+df_decade <- data_q4 %>%
+  filter(!is.na(Anomaly)) %>%
+  mutate(Decade = paste0(floor(Year / 10) * 10, "s")) %>%
+  group_by(Decade) %>%
+  summarize(Avg_Anomaly = mean(Anomaly, na.rm = TRUE), .groups = "drop") %>%
+  arrange(Avg_Anomaly)
+
+ggplot(df_decade, aes(x = 0, y = Avg_Anomaly)) +
+  geom_segment(
+    aes(x = 0, xend = 0, y = min(Avg_Anomaly), yend = max(Avg_Anomaly)),
+    color = "gray40", linewidth = 1.2
+  ) +
+  geom_point(aes(color = Avg_Anomaly), size = 5) +
+  geom_text(
+    aes(label = Decade),
+    nudge_x = 0.2,
+    size = 4,
+    hjust = 5
+  ) +
+  scale_color_gradient2(
+    low = "#2166ac", mid = "white", high = "#b2182b", midpoint = 0,
+    name = "Avg Anomaly"
+  ) +
+  coord_cartesian(clip = "off") +
+  theme_minimal() +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = margin(10, 40, 10, 10),
+    legend.position = "none"
+  ) +
+  labs(
+    title = "Average Anomaly per Decade",
+    y = "Avg Temperature Anomaly (°C)"
+  )
+```
